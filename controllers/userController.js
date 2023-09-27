@@ -79,6 +79,7 @@ export async function deleteUser(req, res) {
 export async function Login(req, res) {
   const { errors, isValid } = ValidateLogin(req.body);
   try {
+    console.log(req.body)
     if (!isValid) {
       res.status(404).json(errors);
     } else {
