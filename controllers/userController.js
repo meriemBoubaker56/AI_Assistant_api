@@ -79,39 +79,41 @@ export async function deleteUser(req, res) {
 export async function Login(req, res) {
   const { errors, isValid } = ValidateLogin(req.body);
   try {
-    console.log(req.body)
+    console.log(req.body);
     if (!isValid) {
-      res.status(404).json(errors);
+      res.status(400).json(errors);
     } else {
       User.findOne({ where: { email: req.body.email } }).then((user) => {
         if (!user) {
-          errors.email = "not found user";
+          errors.email = "User Not Found";
           res.status(404).json(errors);
         } else {
-          bcrypt.compare(req.body.password, user.password_hash).then((isMatch) => {
-            if (!isMatch) {
-              errors.password = "incorrect information";
-              res.status(404).json(errors);
-            } else {
-              var token = jwt.sign(
-                {
-                  id: user._id,
-                  name: user.name,
-                  email: user.email,
-                },
-                process.env.TOKEN_SECRET,
-                { expiresIn: process.env.TOKEN_EXPIRATION }
-              );
-              res.status(200).json({
-                message: "success",
-                token: "Bearer " + token,
-              });
-            }
-          });
+          bcrypt
+            .compare(req.body.password, user.password_hash)
+            .then((isMatch) => {
+              if (!isMatch) {
+                errors.password = "incorrect information";
+                res.status(401).json(errors);
+              } else {
+                var token = jwt.sign(
+                  {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                  },
+                  process.env.TOKEN_SECRET,
+                  { expiresIn: process.env.TOKEN_EXPIRATION }
+                );
+                res.status(200).json({
+                  message: "success",
+                  token: "Bearer " + token,
+                });
+              }
+            });
         }
       });
     }
   } catch (error) {
-    res.status(404).json(error.message);
+    return res.status(500).json({ message: "An error occurred" });
   }
 }
